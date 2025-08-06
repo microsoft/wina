@@ -1,5 +1,5 @@
 torch==2.4.0
-transformers==4.50.0
+transformers==4.53.0
 accelerate
 sentencepiece
 tiktoken
