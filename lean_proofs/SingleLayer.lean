@@ -76,6 +76,15 @@ theorem singleLayer_topK_optimality
     singleLayer_error_eq_omittedScoreSum W x other hGram]
   exact omitted_sum_minimal_of_isTopK hwina hother
 
+/-- The literal norm-valued conclusion of Lemma 3.1. -/
+theorem singleLayer_topK_optimality_norm
+    (W : Matrix κ ι ℝ) (x : ι → ℝ) (k : ℕ) (wina other : Finset ι)
+    (hGram : (W.transpose * W).IsDiag)
+    (hwina : IsWINATopK W x k wina) (hother : other.card = k) :
+    singleLayerGatingObjectiveNorm W x wina ≤ singleLayerGatingObjectiveNorm W x other := by
+  apply Real.sqrt_le_sqrt
+  exact singleLayer_topK_optimality W x k wina other hGram hwina hother
+
 omit [Fintype ι] [DecidableEq ι] in
 /-- The paper's transpose-product formulation is exactly Mathlib's orthogonal-column
 predicate, providing a notation bridge for Lemma 3.1. -/

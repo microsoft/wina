@@ -80,7 +80,7 @@
       "lean": {
         "status": "stated",
         "files": ["Basic.lean"],
-        "declarations": ["WINA.linearOutput", "WINA.gatedLinearOutput", "WINA.singleLayerGatingObjective"],
+        "declarations": ["WINA.linearOutput", "WINA.gatedLinearOutput", "WINA.singleLayerGatingObjectiveNorm", "WINA.singleLayerGatingObjective"],
         "added_hypotheses": [],
         "route_note": "A gate is represented by its retained-coordinate finset. The objective is squared, without changing the optimization problem."
       }
@@ -149,7 +149,7 @@
       "lean": {
         "status": "stated",
         "files": ["Basic.lean"],
-        "declarations": ["WINA.winaScoreSq", "WINA.IsWINATopK"],
+        "declarations": ["WINA.winaScore", "WINA.winaScoreSq", "WINA.winaScore_sq_eq", "WINA.IsWINATopK", "WINA.isTopK_winaScoreSq_iff_winaScore"],
         "added_hypotheses": [],
         "route_note": "Lean uses the squared nonnegative score x_i^2 ||W_{:,i}||_2^2, whose ordering is equivalent to the paper's absolute weighted score, and treats top-K ties set-valuedly."
       }
@@ -199,6 +199,7 @@
           "WINA.sqNorm_mulVec_eq_sum_winaScoreSq_of_gram_isDiag",
           "WINA.singleLayer_error_eq_omittedScoreSum",
           "WINA.singleLayer_topK_optimality",
+          "WINA.singleLayer_topK_optimality_norm",
           "WINA.gram_isDiag_iff_hasOrthogonalCols"
         ],
         "added_hypotheses": ["The optimization domain is restricted to gates retaining exactly K coordinates, as specified by the surrounding prose and gate definition but omitted from the displayed argmin."],
@@ -244,7 +245,7 @@
       "formalization_notes": "Preserve the authors' route as three later proof obligations: the exact gated-error decomposition, the Young upper bound, and the separability-to-top-k minimizer implication. Candidate source-faithful repairs to investigate are: (a) an explicit gate-independent omitted-score representation as an additional hypothesis; (b) stronger orthogonality of the relevant effective products, such as A^T A diagonal for the two-layer first residual, together with a separate condition removing inter-layer gate dependence; or (c) the weaker conclusion of conditional per-layer top-k optimality rather than joint argmin optimality. Vanishing of the Young cross term alone does not resolve gate coupling. Any assumption or weakened conclusion absent from the paper must remain explicit.",
       "lean": {
         "status": "stated",
-        "files": ["DeepUpperBound.lean"],
+        "files": ["DeepUpperBound.lean", "Examples.lean"],
         "declarations": [
           "WINA.twoLayer_error_decomposition",
           "WINA.layer_error_decomposition",
@@ -256,10 +257,11 @@
           "WINA.earlierLayerResidual_sq_eq_omittedScoreSum",
           "WINA.twoLayerYoungBound_minimal_of_effectiveTopK_of_newestResidual_eq_zero",
           "WINA.separableUpperBound_minimal",
-          "WINA.deep_upper_bound_optimality"
+          "WINA.deep_upper_bound_optimality",
+          "WINA.twoLayer_repair_nonvacuous"
         ],
         "added_hypotheses": ["Every layer gate is restricted to its fixed target cardinality, as intended by the paper's top-k rule but omitted from the displayed joint argmin.", "The paper-facing joint-minimizer theorem assumes that the upper bound has a gate-independent separable omitted-score representation with nonnegative layer coefficients; Appendix A.8 does not derive this bridge from the printed diagonal-Gram hypotheses.", "The concrete two-layer repair assumes diagonal Gram for the effective product W^(2)W^(1), that the first WINA gate is top-k for its effective scores, and that the WINA second gate makes the newest residual vanish."],
-        "route_note": "Lean mechanizes the paper's exact two-layer and N+1 decompositions, proves the scaled Young inequality rather than taking it as a premise, derives each valid omitted-score identity under its exact Gram condition, and proves the joint top-k conclusion conditionally from the explicit separability bridge. A separately named two-layer theorem gives a non-vacuous sufficient repair for the concrete Young objective."
+        "route_note": "Lean mechanizes the paper's exact two-layer and N+1 decompositions, proves the scaled Young inequality rather than taking it as a premise, derives each valid omitted-score identity under its exact Gram condition, and proves the joint top-k conclusion conditionally from the explicit separability bridge. A separately named two-layer theorem gives a sufficient repair for the concrete Young objective, and an exact two-coordinate identity-network witness proves that its hypotheses are jointly satisfiable."
       }
     },
     {

@@ -1,5 +1,5 @@
 command: lake env lean CatalogAxioms.lean
-catalog declarations: 27
+catalog declarations: 33
 allowed axioms: Classical.choice, Quot.sound, propext
 exit code: 0
 
@@ -7,14 +7,19 @@ exit code: 0
 'WINA.outputDeviationSq' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.linearOutput' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.gatedLinearOutput' depends on axioms: [propext, Classical.choice, Quot.sound]
+'WINA.singleLayerGatingObjectiveNorm' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.singleLayerGatingObjective' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.IsMagnitudeTopK' depends on axioms: [propext, Classical.choice, Quot.sound]
+'WINA.winaScore' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.winaScoreSq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'WINA.winaScore_sq_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.IsWINATopK' depends on axioms: [propext, Classical.choice, Quot.sound]
+'WINA.isTopK_winaScoreSq_iff_winaScore' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.omitted_sum_minimal_of_isTopK' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.sqNorm_mulVec_eq_sum_winaScoreSq_of_gram_isDiag' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.singleLayer_error_eq_omittedScoreSum' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.singleLayer_topK_optimality' depends on axioms: [propext, Classical.choice, Quot.sound]
+'WINA.singleLayer_topK_optimality_norm' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.gram_isDiag_iff_hasOrthogonalCols' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.twoLayer_error_decomposition' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.layer_error_decomposition' depends on axioms: [propext, Classical.choice, Quot.sound]
@@ -29,6 +34,7 @@ exit code: 0
  Quot.sound]
 'WINA.separableUpperBound_minimal' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.deep_upper_bound_optimality' depends on axioms: [propext, Classical.choice, Quot.sound]
+'WINA.twoLayer_repair_nonvacuous' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.svd_right_transform_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.svd_transformed_gram' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.svd_right_transform_hasOrthogonalCols' depends on axioms: [propext, Classical.choice, Quot.sound]
