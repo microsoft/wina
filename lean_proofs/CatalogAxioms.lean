@@ -14,6 +14,7 @@ import WINA
 #print axioms WINA.winaScore_sq_eq
 #print axioms WINA.IsWINATopK
 #print axioms WINA.isTopK_winaScoreSq_iff_winaScore
+#print axioms WINA.exists_isWINATopK
 #print axioms WINA.omitted_sum_minimal_of_isTopK
 #print axioms WINA.sqNorm_mulVec_eq_sum_winaScoreSq_of_gram_isDiag
 #print axioms WINA.singleLayer_error_eq_omittedScoreSum
@@ -30,8 +31,12 @@ import WINA
 #print axioms WINA.earlierLayerResidual_sq_eq_omittedScoreSum
 #print axioms WINA.twoLayerYoungBound_minimal_of_effectiveTopK_of_newestResidual_eq_zero
 #print axioms WINA.separableUpperBound_minimal
+#print axioms WINA.IsAdmissibleGateFamily
 #print axioms WINA.deep_upper_bound_optimality
 #print axioms WINA.twoLayer_repair_nonvacuous
+#print axioms WINA.identity_twoLayerYoungBound_minimal
 #print axioms WINA.svd_right_transform_eq
 #print axioms WINA.svd_transformed_gram
+#print axioms WINA.isDiag_transpose_mul_self
 #print axioms WINA.svd_right_transform_hasOrthogonalCols
+#print axioms WINA.svd_right_transform_hasOrthogonalCols_square

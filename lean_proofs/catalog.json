@@ -148,8 +148,8 @@
       "depends_on": [],
       "lean": {
         "status": "stated",
-        "files": ["Basic.lean"],
-        "declarations": ["WINA.winaScore", "WINA.winaScoreSq", "WINA.winaScore_sq_eq", "WINA.IsWINATopK", "WINA.isTopK_winaScoreSq_iff_winaScore"],
+        "files": ["Basic.lean", "TopK.lean"],
+        "declarations": ["WINA.winaScore", "WINA.winaScoreSq", "WINA.winaScore_sq_eq", "WINA.IsWINATopK", "WINA.isTopK_winaScoreSq_iff_winaScore", "WINA.exists_isWINATopK"],
         "added_hypotheses": [],
         "route_note": "Lean uses the squared nonnegative score x_i^2 ||W_{:,i}||_2^2, whose ordering is equivalent to the paper's absolute weighted score, and treats top-K ties set-valuedly."
       }
@@ -257,8 +257,10 @@
           "WINA.earlierLayerResidual_sq_eq_omittedScoreSum",
           "WINA.twoLayerYoungBound_minimal_of_effectiveTopK_of_newestResidual_eq_zero",
           "WINA.separableUpperBound_minimal",
+          "WINA.IsAdmissibleGateFamily",
           "WINA.deep_upper_bound_optimality",
-          "WINA.twoLayer_repair_nonvacuous"
+          "WINA.twoLayer_repair_nonvacuous",
+          "WINA.identity_twoLayerYoungBound_minimal"
         ],
         "added_hypotheses": ["Every layer gate is restricted to its fixed target cardinality, as intended by the paper's top-k rule but omitted from the displayed joint argmin.", "The paper-facing joint-minimizer theorem assumes that the upper bound has a gate-independent separable omitted-score representation with nonnegative layer coefficients; Appendix A.8 does not derive this bridge from the printed diagonal-Gram hypotheses.", "The concrete two-layer repair assumes diagonal Gram for the effective product W^(2)W^(1), that the first WINA gate is top-k for its effective scores, and that the WINA second gate makes the newest residual vanish."],
         "route_note": "Lean mechanizes the paper's exact two-layer and N+1 decompositions, proves the scaled Young inequality rather than taking it as a premise, derives each valid omitted-score identity under its exact Gram condition, and proves the joint top-k conclusion conditionally from the explicit separability bridge. A separately named two-layer theorem gives a sufficient repair for the concrete Young objective, and an exact two-coordinate identity-network witness proves that its hypotheses are jointly satisfiable."
@@ -299,9 +301,9 @@
       "lean": {
         "status": "stated",
         "files": ["SVDGram.lean"],
-        "declarations": ["WINA.svd_right_transform_eq", "WINA.svd_transformed_gram", "WINA.svd_right_transform_hasOrthogonalCols"],
+        "declarations": ["WINA.svd_right_transform_eq", "WINA.svd_transformed_gram", "WINA.isDiag_transpose_mul_self", "WINA.svd_right_transform_hasOrthogonalCols", "WINA.svd_right_transform_hasOrthogonalCols_square"],
         "added_hypotheses": [],
-        "route_note": "The paper-notation bridge assumes the stated SVD factorization and orthogonality identities, then proves the rectangular Gram factor Sigma^T Sigma and the resulting orthogonal-column predicate."
+        "route_note": "The paper-notation bridge assumes the stated SVD factorization and orthogonality identities, proves the rectangular Gram factor Sigma^T Sigma, and derives its diagonal Gram matrix from the paper's literal square-diagonal Sigma convention. The rectangular theorem exposes diagonal Sigma^T Sigma as the dimensionally precise condition."
       }
     }
   ]

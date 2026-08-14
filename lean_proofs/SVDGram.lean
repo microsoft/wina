@@ -48,4 +48,32 @@ theorem svd_right_transform_hasOrthogonalCols
   rw [svd_transformed_gram W U Sigma V hW hU hV]
   exact hSigma
 
+omit [DecidableEq n] in
+/-- A square diagonal singular-value matrix has diagonal Gram matrix. -/
+theorem isDiag_transpose_mul_self {Sigma : Matrix n n ℝ} (hSigma : Sigma.IsDiag) :
+    (Sigma.transpose * Sigma).IsDiag := by
+  classical
+  intro i j hij
+  simp only [Matrix.mul_apply, Matrix.transpose_apply]
+  apply Finset.sum_eq_zero
+  intro k _
+  by_cases hki : k = i
+  · subst k
+    rw [hSigma hij]
+    simp
+  · rw [hSigma hki]
+    simp
+
+omit [DecidableEq m] in
+/-- Eq. (5) in the paper's literal square-diagonal convention, deriving rather than
+assuming the final diagonal-Gram fact. -/
+theorem svd_right_transform_hasOrthogonalCols_square
+    (W : Matrix m n ℝ) (U : Matrix m n ℝ) (Sigma V : Matrix n n ℝ)
+    (hW : W = U * Sigma * V.transpose)
+    (hU : U.transpose * U = 1) (hV : V.transpose * V = 1)
+    (hSigma : Sigma.IsDiag) :
+    (W * V).HasOrthogonalCols :=
+  svd_right_transform_hasOrthogonalCols W U Sigma V hW hU hV
+    (isDiag_transpose_mul_self hSigma)
+
 end WINA

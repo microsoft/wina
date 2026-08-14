@@ -1,5 +1,5 @@
 command: lake env lean CatalogAxioms.lean
-catalog declarations: 33
+catalog declarations: 38
 allowed axioms: Classical.choice, Quot.sound, propext
 exit code: 0
 
@@ -15,6 +15,7 @@ exit code: 0
 'WINA.winaScore_sq_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.IsWINATopK' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.isTopK_winaScoreSq_iff_winaScore' depends on axioms: [propext, Classical.choice, Quot.sound]
+'WINA.exists_isWINATopK' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.omitted_sum_minimal_of_isTopK' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.sqNorm_mulVec_eq_sum_winaScoreSq_of_gram_isDiag' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.singleLayer_error_eq_omittedScoreSum' depends on axioms: [propext, Classical.choice, Quot.sound]
@@ -33,8 +34,12 @@ exit code: 0
  Classical.choice,
  Quot.sound]
 'WINA.separableUpperBound_minimal' depends on axioms: [propext, Classical.choice, Quot.sound]
+'WINA.IsAdmissibleGateFamily' depends on axioms: [propext, Quot.sound]
 'WINA.deep_upper_bound_optimality' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.twoLayer_repair_nonvacuous' depends on axioms: [propext, Classical.choice, Quot.sound]
+'WINA.identity_twoLayerYoungBound_minimal' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.svd_right_transform_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.svd_transformed_gram' depends on axioms: [propext, Classical.choice, Quot.sound]
+'WINA.isDiag_transpose_mul_self' depends on axioms: [propext, Classical.choice, Quot.sound]
 'WINA.svd_right_transform_hasOrthogonalCols' depends on axioms: [propext, Classical.choice, Quot.sound]
+'WINA.svd_right_transform_hasOrthogonalCols_square' depends on axioms: [propext, Classical.choice, Quot.sound]

@@ -200,7 +200,8 @@ theorem twoLayerYoungBound_minimal_of_effectiveTopK_of_newestResidual_eq_zero
     {α : ℝ} (hα : 0 < α)
     (hEffective : ((W2 * W1).transpose * (W2 * W1)).IsDiag)
     (hwina1 : IsWINATopK (W2 * W1) x k1 wina1)
-    (hother1 : other1.card = k1) (_hother2 : other2.card = k2)
+    (_hwina2 : wina2.card = k2) (hother1 : other1.card = k1)
+    (_hother2 : other2.card = k2)
     (hwinaNewest : newestLayerResidual W1 W2 x wina1 wina2 = 0) :
     twoLayerYoungBound W1 W2 x wina1 wina2 α ≤
       twoLayerYoungBound W1 W2 x other1 other2 α := by
@@ -238,6 +239,10 @@ def IsLayerwiseTopK (score : ∀ l, Coord l → ℝ) (k : Layer → ℕ)
     (gates : GateFamily Coord) : Prop :=
   ∀ l, IsTopK (score l) (k l) (gates l)
 
+/-- The fixed-density joint gate domain intended by the paper's top-k rule. -/
+def IsAdmissibleGateFamily (k : Layer → ℕ) (gates : GateFamily Coord) : Prop :=
+  ∀ l, (gates l).card = k l
+
 omit [DecidableEq Layer] in
 /-- The layerwise top-K choices jointly minimize every gate-independent separable bound. -/
 theorem separableUpperBound_minimal
@@ -257,9 +262,11 @@ theorem deep_upper_bound_optimality
     (error : GateFamily Coord → ℝ) (coeff : Layer → ℝ)
     (score : ∀ l, Coord l → ℝ) (k : Layer → ℕ) (wina : GateFamily Coord)
     (hcoeff : ∀ l, 0 ≤ coeff l) (hwina : IsLayerwiseTopK score k wina)
-    (hupper : ∀ gates, error gates ≤ separableUpperBound coeff score gates) :
-    (∀ gates, error gates ≤ separableUpperBound coeff score gates) ∧
-      ∀ other, (∀ l, (other l).card = k l) →
+    (hupper : ∀ gates, IsAdmissibleGateFamily k gates →
+      error gates ≤ separableUpperBound coeff score gates) :
+    (∀ gates, IsAdmissibleGateFamily k gates →
+      error gates ≤ separableUpperBound coeff score gates) ∧
+      ∀ other, IsAdmissibleGateFamily k other →
         separableUpperBound coeff score wina ≤ separableUpperBound coeff score other := by
   refine ⟨hupper, ?_⟩
   intro other hother

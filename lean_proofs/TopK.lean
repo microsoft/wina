@@ -60,4 +60,44 @@ theorem omitted_sum_minimal_of_isTopK {score : ι → ℝ} {k : ℕ}
   have hother_total := Finset.sum_sdiff (Finset.subset_univ other) (f := score)
   linarith
 
+/-- A tie-safe top-K retained set exists whenever the requested cardinality is feasible. -/
+theorem exists_isTopK (score : ι → ℝ) {k : ℕ} (hk : k ≤ Fintype.card ι) :
+    ∃ kept : Finset ι, IsTopK score k kept := by
+  classical
+  have hpowerset : ((Finset.univ : Finset ι).powersetCard k).Nonempty := by
+    rw [Finset.powersetCard_nonempty]
+    simpa using hk
+  obtain ⟨best, hbest, hmax⟩ :=
+    Finset.exists_max_image ((Finset.univ : Finset ι).powersetCard k)
+      (fun s => ∑ i ∈ s, score i) hpowerset
+  refine ⟨best, (Finset.mem_powersetCard.mp hbest).2, ?_⟩
+  intro i j hi hj
+  by_contra hnot
+  have hlt : score i < score j := lt_of_not_ge hnot
+  let swapped := insert j (best.erase i)
+  have hjErase : j ∉ best.erase i := fun h => hj (Finset.mem_of_mem_erase h)
+  have hcardErase : (best.erase i).card = best.card - 1 := Finset.card_erase_of_mem hi
+  have hkpos : 0 < k := by
+    rw [← (Finset.mem_powersetCard.mp hbest).2]
+    exact Finset.card_pos.mpr ⟨i, hi⟩
+  have hcardSwapped : swapped.card = k := by
+    rw [show swapped = insert j (best.erase i) by rfl,
+      Finset.card_insert_of_notMem hjErase, hcardErase,
+      (Finset.mem_powersetCard.mp hbest).2]
+    omega
+  have hswapped : swapped ∈ Finset.univ.powersetCard k :=
+    Finset.mem_powersetCard.mpr ⟨Finset.subset_univ _, hcardSwapped⟩
+  have hmaxSwapped := hmax swapped hswapped
+  have hsumErase := Finset.sum_erase_add best score hi
+  have hsumInsert := Finset.sum_insert hjErase (f := score)
+  change (∑ x ∈ swapped, score x) ≤ ∑ x ∈ best, score x at hmaxSwapped
+  rw [show swapped = insert j (best.erase i) by rfl, hsumInsert] at hmaxSwapped
+  linarith
+
+/-- In particular, the paper's WINA top-K gate always exists on a feasible finite layer. -/
+theorem exists_isWINATopK {κ : Type*} [Fintype κ]
+    (W : Matrix κ ι ℝ) (x : ι → ℝ) {k : ℕ} (hk : k ≤ Fintype.card ι) :
+    ∃ kept : Finset ι, IsWINATopK W x k kept :=
+  exists_isTopK (winaScoreSq W x) hk
+
 end WINA

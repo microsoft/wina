@@ -32,4 +32,21 @@ theorem twoLayer_repair_nonvacuous :
     fin_cases i <;>
       simp [newestLayerResidual, mask, gateIndicator, Matrix.one_mulVec]
 
+/-- The complete concrete minimizer theorem is inhabited on the same exact instance. -/
+theorem identity_twoLayerYoungBound_minimal
+    (other1 other2 : Finset (Fin 2)) (hother1 : other1.card = 1)
+    (hother2 : other2.card = 1) :
+    let x : Fin 2 → ℝ := ![2, 1]
+    let kept : Finset (Fin 2) := {0}
+    twoLayerYoungBound (1 : Matrix (Fin 2) (Fin 2) ℝ)
+        (1 : Matrix (Fin 2) (Fin 2) ℝ) x kept kept 1 ≤
+      twoLayerYoungBound (1 : Matrix (Fin 2) (Fin 2) ℝ)
+        (1 : Matrix (Fin 2) (Fin 2) ℝ) x other1 other2 1 := by
+  dsimp
+  have hrepair := twoLayer_repair_nonvacuous
+  exact twoLayerYoungBound_minimal_of_effectiveTopK_of_newestResidual_eq_zero
+    (1 : Matrix (Fin 2) (Fin 2) ℝ) (1 : Matrix (Fin 2) (Fin 2) ℝ) ![2, 1]
+    1 1 {0} other1 {0} other2 (by norm_num) hrepair.1 hrepair.2.1
+    (by decide) hother1 hother2 hrepair.2.2
+
 end WINA
