@@ -41,7 +41,7 @@
       "proof_completeness": "definition; no proof required",
       "depends_on": [],
       "lean": {
-        "status": "stated",
+        "status": "proved",
         "files": ["Basic.lean"],
         "declarations": ["WINA.deepGatingObjective", "WINA.outputDeviationSq"],
         "added_hypotheses": [],
@@ -78,7 +78,7 @@
       "proof_completeness": "definition; no proof required",
       "depends_on": ["deep_gating_objective"],
       "lean": {
-        "status": "stated",
+        "status": "proved",
         "files": ["Basic.lean"],
         "declarations": ["WINA.linearOutput", "WINA.gatedLinearOutput", "WINA.singleLayerGatingObjectiveNorm", "WINA.singleLayerGatingObjective"],
         "added_hypotheses": [],
@@ -112,7 +112,7 @@
       "proof_completeness": "definition; no proof required",
       "depends_on": [],
       "lean": {
-        "status": "stated",
+        "status": "proved",
         "files": ["Basic.lean"],
         "declarations": ["WINA.IsMagnitudeTopK"],
         "added_hypotheses": [],
@@ -147,7 +147,7 @@
       "proof_completeness": "definition; no proof required",
       "depends_on": [],
       "lean": {
-        "status": "stated",
+        "status": "proved",
         "files": ["Basic.lean", "TopK.lean"],
         "declarations": ["WINA.winaScore", "WINA.winaScoreSq", "WINA.winaScore_sq_eq", "WINA.IsWINATopK", "WINA.isTopK_winaScoreSq_iff_winaScore", "WINA.exists_isWINATopK"],
         "added_hypotheses": [],
@@ -192,7 +192,7 @@
       "known_issues_in_paper": ["The displayed argmin in Lemma 3.1 and Eq. (6) omits the exactly-K restriction already fixed by the surrounding prose and WINA gate definition. The formal statement restores that intended domain.", "Appendix A.7 defines the omitted set as {i | x_i = 0}; the expansion uses the indices zeroed by the gate. It also calls the deterministic squared error an expected deviation, although orthogonality removes cross terms pointwise."],
       "formalization_notes": "State the theorem over finite index sets and size-K retained sets. Prove the exact omitted-score identity first, then use a finite exchange or top-K characterization. Treat ties extensionally: any size-K set satisfying the top-K order condition is optimal.",
       "lean": {
-        "status": "stated",
+        "status": "proved",
         "files": ["TopK.lean", "SingleLayer.lean"],
         "declarations": [
           "WINA.omitted_sum_minimal_of_isTopK",
@@ -244,7 +244,7 @@
       "known_issues_in_paper": ["The theorem statement does not formally define 'separable.' Appendix A.8's concrete Young bound contains later residuals that depend on earlier gates, so an explicit gate-independent separability bridge is needed for the stated joint minimization argument.", "The theorem writes G_WINA = argmin_G U although argmin is set-valued, and it does not put the per-layer fixed-cardinality constraints in the displayed optimization domain. The formal statement uses membership in argmin over the top-k domains intended by the surrounding text.", "The two-layer proof writes ||A(M^(1)-I)x||_2^2 as a sum of omitted squared column scores for A=W^(2)W^(1). This identity needs orthogonality of the relevant effective columns (or equivalent cross-term cancellation), which is not immediate from diagonality of W^(2)T W^(2).", "For a fixed incoming gated activation, the newest-layer residual is a top-k omitted-coordinate sum. This conditional layerwise fact is weaker than joint minimization over every gate family, because the incoming activation itself depends on earlier gates."],
       "formalization_notes": "Preserve the authors' route as three later proof obligations: the exact gated-error decomposition, the Young upper bound, and the separability-to-top-k minimizer implication. Candidate source-faithful repairs to investigate are: (a) an explicit gate-independent omitted-score representation as an additional hypothesis; (b) stronger orthogonality of the relevant effective products, such as A^T A diagonal for the two-layer first residual, together with a separate condition removing inter-layer gate dependence; or (c) the weaker conclusion of conditional per-layer top-k optimality rather than joint argmin optimality. Vanishing of the Young cross term alone does not resolve gate coupling. Any assumption or weakened conclusion absent from the paper must remain explicit.",
       "lean": {
-        "status": "stated",
+        "status": "proved",
         "files": ["DeepUpperBound.lean", "Examples.lean"],
         "declarations": [
           "WINA.twoLayer_error_decomposition",
@@ -299,7 +299,7 @@
       "known_issues_in_paper": ["For rectangular matrices, the diagonal Gram factor is Sigma^T Sigma; the notation Sigma^2 in Eq. (5) is dimensionally literal only under the paper's square/compatible-diagonal convention."],
       "formalization_notes": "Formalize the Gram identity as a notation bridge from the paper's SVD symbols to Mathlib's matrix multiplication and transpose operations. Keep the broader model-invariance algorithm separate unless its companion transformations are fully specified.",
       "lean": {
-        "status": "stated",
+        "status": "proved",
         "files": ["SVDGram.lean"],
         "declarations": ["WINA.svd_right_transform_eq", "WINA.svd_transformed_gram", "WINA.isDiag_transpose_mul_self", "WINA.svd_right_transform_hasOrthogonalCols", "WINA.svd_right_transform_hasOrthogonalCols_square"],
         "added_hypotheses": [],
