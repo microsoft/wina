@@ -1,0 +1,237 @@
+{
+  "schema_version": "1.0",
+  "paper": {
+    "title": "WINA: Weight Informed Neuron Activation for Accelerating Large Language Model Inference",
+    "authors": ["Sihan Chen", "Dan Zhao", "Jongwoo Ko", "Colby Banbury", "Huiping Zhuang", "Luming Liang", "Pashmina Cameron", "Tianyi Chen"],
+    "affiliation": "Renmin University of China; Microsoft; University of California, Berkeley; University of Wyoming; Zhejiang University; Nanyang Technological University",
+    "venue": "ICLR 2026",
+    "arxiv_id": "2505.19427",
+    "version": "v2",
+    "arxiv_abs_url": "https://arxiv.org/abs/2505.19427v2",
+    "source_of_truth": "Accepted ICLR 2026 manuscript represented by the arXiv v2 LaTeX e-print and rendered PDF. Mathematical statements were cataloged from tex_arxiv/03_method.tex, tex_arxiv/appendix.tex, tex_arxiv/proof_lemma_3.1.tex, and tex_arxiv/proof_theorem_3.5.tex; the rendered PDF fixes equation, appendix, and page numbering.",
+    "scope_note": "The accepted paper has two headline theoretical results: a single-layer fixed-density top-K optimality lemma and a deep-linear-network upper-bound theorem. The main definitions are the dense/gated approximation objectives and the TEAL/WINA gate rules. Appendix A.2 also gives an SVD identity showing that right multiplication by the right-singular-vector matrix produces a column-orthogonal matrix. Experimental comparisons, runtime measurements, and sparsity-allocation procedures are empirical or algorithmic claims rather than self-contained mathematical theorems. The deep theorem's printed proof does not establish its minimization claim under the stated hypotheses; this is recorded on that item rather than replaced by a different theorem."
+  },
+  "items": [
+    {
+      "id": "deep_gating_objective",
+      "label": "Problem / Eq. (1)",
+      "name": "Deep-network gated-output approximation objective",
+      "kind": "definition",
+      "references": {
+        "human": {
+          "statement": "Sec. 3.1 'Problem Statement', Problem, Eq. (1)",
+          "pdf_page_statement": 4,
+          "equations": ["(1)"]
+        },
+        "machine": {
+          "source_files": ["tex_arxiv/03_method.tex"],
+          "statement_lines": "03_method.tex L26-36"
+        }
+      },
+      "background_notation": {
+        "M": "an L-layer deep neural network",
+        "X": "the full network input",
+        "G": "a family of binary activation gates, one for each layer",
+        "M(X | G)": "the output of the network with gates G applied"
+      },
+      "hypotheses": ["Each layer gate is a binary vector of the appropriate input dimension."],
+      "statement_informal": "Choose binary activation gates across all layers to minimize the Euclidean deviation between the dense and gated network outputs.",
+      "statement_formal": "Minimize ||M(X) - M(X | G)||_2 over G = {g^(1), ..., g^(L)} with each g^(l) in {0,1}^{n_l}.",
+      "proof_as_in_paper": "This is the paper's optimization problem, not a proved proposition. The text notes that the complete input set X is generally unavailable and motivates a sampled approximation and a per-layer refinement.",
+      "proof_completeness": "definition; no proof required",
+      "depends_on": []
+    },
+    {
+      "id": "single_layer_gating_objective",
+      "label": "Refined Problem / Eq. (2)",
+      "name": "Single-layer gated-output approximation objective",
+      "kind": "definition",
+      "references": {
+        "human": {
+          "statement": "Sec. 3.1 'Problem Statement', Refined Problem, Eq. (2)",
+          "pdf_page_statement": 4,
+          "equations": ["(2)"]
+        },
+        "machine": {
+          "source_files": ["tex_arxiv/03_method.tex"],
+          "statement_labels": ["main.prob"],
+          "statement_lines": "03_method.tex L38-43"
+        }
+      },
+      "background_notation": {
+        "W": "an m by n real weight matrix",
+        "x": "an input vector in R^n",
+        "g": "a binary gate in {0,1}^n",
+        "g ⊙ x": "coordinatewise masking of x by g"
+      },
+      "hypotheses": ["W is an m by n real matrix.", "x is in R^n.", "g is in {0,1}^n."],
+      "statement_informal": "Choose a binary mask whose linear-layer output best approximates the dense output.",
+      "statement_formal": "Minimize ||W x - W(g ⊙ x)||_2 over g in {0,1}^n.",
+      "proof_as_in_paper": "This is the per-layer optimization problem obtained from Eq. (1), not a proved proposition.",
+      "proof_completeness": "definition; no proof required",
+      "depends_on": ["deep_gating_objective"]
+    },
+    {
+      "id": "magnitude_top_k_gate",
+      "label": "Eq. (3)",
+      "name": "Magnitude-only top-K activation gate",
+      "kind": "definition",
+      "references": {
+        "human": {
+          "statement": "Sec. 3.2 'Weight Informed Gate Function', Eq. (3)",
+          "pdf_page_statement": 4,
+          "equations": ["(3)"]
+        },
+        "machine": {
+          "source_files": ["tex_arxiv/03_method.tex"],
+          "statement_lines": "03_method.tex L47-54"
+        }
+      },
+      "background_notation": {
+        "x": "an input vector",
+        "K": "the number of retained coordinates"
+      },
+      "hypotheses": ["0 <= K <= n.", "A deterministic tie-breaking convention is fixed if boundary magnitudes tie."],
+      "statement_informal": "Retain the K input coordinates with largest absolute magnitudes.",
+      "statement_formal": "Set g_i = 1 exactly on a size-K set of indices attaining the K largest values of |x_i|, and set g_i = 0 elsewhere.",
+      "proof_as_in_paper": "This is the gate used by the magnitude-only baselines discussed in the paper; no proof is claimed.",
+      "proof_completeness": "definition; no proof required",
+      "depends_on": []
+    },
+    {
+      "id": "wina_top_k_gate",
+      "label": "Eq. (4)",
+      "name": "Weight-informed top-K activation gate",
+      "kind": "definition",
+      "references": {
+        "human": {
+          "statement": "Sec. 3.2 'Weight Informed Gate Function', Eq. (4)",
+          "pdf_page_statement": 4,
+          "equations": ["(4)"]
+        },
+        "machine": {
+          "source_files": ["tex_arxiv/03_method.tex"],
+          "statement_lines": "03_method.tex L57-64"
+        }
+      },
+      "background_notation": {
+        "x": "an input vector in R^n",
+        "c_i": "the Euclidean norm ||W_{:,i}||_2 of column i of W",
+        "K": "the number of retained coordinates"
+      },
+      "hypotheses": ["0 <= K <= n.", "A deterministic tie-breaking convention is fixed if boundary scores tie."],
+      "statement_informal": "Retain the K coordinates with largest products of input magnitude and weight-column norm.",
+      "statement_formal": "Set [g_WINA]_i = 1 exactly on a size-K set attaining the K largest values of |x_i c_i|, where c_i = ||W_{:,i}||_2, and set it to zero elsewhere.",
+      "proof_as_in_paper": "This is WINA's gate definition; no proof is claimed.",
+      "proof_completeness": "definition; no proof required",
+      "depends_on": []
+    },
+    {
+      "id": "single_layer_top_k_optimality",
+      "label": "Lemma 3.1 / Eq. (6)",
+      "name": "Single-layer fixed-density WINA optimality under column orthogonality",
+      "kind": "lemma",
+      "references": {
+        "human": {
+          "statement": "Sec. 3.3, Lemma 3.1",
+          "proof": "Appendix A.7 'Proof of Lemma 3.1'",
+          "pdf_page_statement": 4,
+          "pdf_page_proof": 20,
+          "equations": ["(2)", "(4)", "(6)"]
+        },
+        "machine": {
+          "source_files": ["tex_arxiv/03_method.tex", "tex_arxiv/proof_lemma_3.1.tex"],
+          "statement_labels": ["lemma.single_layer", "main.prob"],
+          "statement_lines": "03_method.tex L69-84",
+          "proof_lines": "proof_lemma_3.1.tex L1-39"
+        }
+      },
+      "background_notation": {
+        "W": "an m by n real matrix",
+        "x": "an input vector in R^n",
+        "c_i": "the column norm ||W_{:,i}||_2",
+        "K": "the target number of retained coordinates",
+        "g_WINA(x)": "a size-K gate retaining the largest |x_i c_i| scores"
+      },
+      "hypotheses": ["W^T W is diagonal, equivalently the columns of W are pairwise orthogonal.", "K is a positive integer with K < n.", "The intended optimization domain consists of gates with exactly K active coordinates."],
+      "statement_informal": "Among all gates retaining exactly K coordinates, WINA minimizes the single-layer output error by retaining the K largest weighted coordinates.",
+      "statement_formal": "If W^T W is diagonal and g_WINA has exactly K ones at indices with the K largest values of |x_i| ||W_{:,i}||_2, then for every g in {0,1}^n with sum_i g_i = K, ||W x - W(g_WINA ⊙ x)||_2 <= ||W x - W(g ⊙ x)||_2.",
+      "proof_as_in_paper": "Expand the squared error as ||sum_{i in I} x_i W_{:,i}||_2^2 = sum_{i in I} x_i^2 ||W_{:,i}||_2^2 + sum_{i != j in I} x_i x_j W_{:,i}^T W_{:,j}. Column orthogonality makes every cross term zero, so the error is the sum of squared weighted scores over omitted coordinates. WINA omits the n-K smallest |x_i c_i| scores and therefore reaches the lower bound, yielding Eq. (6).",
+      "proof_technique": "Orthogonal norm expansion followed by finite top-K exchange/minimum argument.",
+      "proof_completeness": "self-contained after restoring the fixed-density domain stated in the surrounding prose",
+      "external_dependencies": [],
+      "depends_on": ["single_layer_gating_objective", "wina_top_k_gate"],
+      "known_issues_in_paper": ["The displayed argmin in Lemma 3.1 and Eq. (6) ranges over all binary gates and omits the requirement that exactly K coordinates remain active. Over the displayed domain the all-ones gate has zero error. The fixed-density restriction is stated in the surrounding prose and is necessary for the result.", "Appendix A.7 defines the omitted set as {i | x_i = 0}; the expansion requires the indices zeroed by the gate. It also calls the deterministic squared error an expected deviation, although no expectation is taken and orthogonality removes cross terms pointwise."],
+      "formalization_notes": "State the theorem over finite index sets and size-K retained sets. Prove the exact omitted-score identity first, then use a finite exchange or top-K characterization. Treat ties extensionally: any size-K set satisfying the top-K order condition is optimal."
+    },
+    {
+      "id": "deep_upper_bound_optimality",
+      "label": "Theorem 3.2",
+      "name": "Claimed deep-network WINA optimality for a Young-inequality upper bound",
+      "kind": "theorem",
+      "references": {
+        "human": {
+          "statement": "Sec. 3.3, Theorem 3.2",
+          "proof": "Appendix A.8 'Proof of Theorem 3.2'",
+          "pdf_page_statement": 5,
+          "pdf_page_proof": 20
+        },
+        "machine": {
+          "source_files": ["tex_arxiv/03_method.tex", "tex_arxiv/proof_theorem_3.5.tex"],
+          "statement_labels": ["theorem.L_layer_with_activation", "app:thm3.5"],
+          "statement_lines": "03_method.tex L86-118",
+          "proof_lines": "proof_theorem_3.5.tex L346-501"
+        }
+      },
+      "background_notation": {
+        "M(x)": "the dense L-layer linear network W^(L)...W^(1)x",
+        "G": "the family of binary layer gates",
+        "E(x;G)": "the true squared output deviation ||M(x)-M(x|G)||_2^2",
+        "U_alpha(x;G)": "the proof's Young-inequality upper bound (1+alpha)||u||_2^2 + (1+1/alpha)||v||_2^2"
+      },
+      "hypotheses": ["For every layer l >= 2, W^(l)T W^(l) is diagonal.", "Each layer gate is binary and obeys its target density.", "alpha > 0 for the upper bound constructed in Appendix A.8."],
+      "statement_informal": "The paper claims that WINA's layerwise weighted top-K choices minimize a separable upper bound on the output deviation of a deep linear network.",
+      "statement_formal": "The paper states that there is a separable U with E(x;G) <= U(x;G) and G_WINA in argmin_G U(x;G). Appendix A.8 defines, at each decomposition step, U_alpha = (1+alpha)||u||_2^2 + (1+1/alpha)||v||_2^2 and claims WINA minimizes it recursively.",
+      "proof_as_in_paper": "For two layers, decompose the gated-minus-dense error exactly as e_g = v + u, where v = W^(2)(M^(2)-I)W^(1)M^(1)x and u = W^(2)W^(1)(M^(1)-I)x. Expand ||e_g||_2^2 = ||u||_2^2 + ||v||_2^2 + 2 u^T v. The proof correctly notes that the cross term depends on the gates. Young's inequality gives 2 u^T v <= alpha ||u||_2^2 + alpha^{-1} ||v||_2^2, hence E <= U_alpha := (1+alpha)||u||_2^2 + (1+alpha^{-1})||v||_2^2. It then asserts that both norm terms have separable top-K forms and that WINA minimizes U_alpha. For N+1 layers it repeats the decomposition, observes that the new-layer v term is a weighted omitted-coordinate sum, and asserts that the u term is minimized recursively on the first N layers, concluding by induction.",
+      "proof_technique": "Exact layerwise error decomposition plus Young's inequality and a claimed recursive top-K minimization.",
+      "proof_completeness": "gap: the proof's upper bound is not jointly separable across layer gates, and its WINA-minimization claim fails under the printed hypotheses",
+      "external_dependencies": ["Young's inequality 2 u^T v <= alpha ||u||_2^2 + alpha^{-1} ||v||_2^2 for alpha > 0."],
+      "depends_on": ["single_layer_top_k_optimality", "wina_top_k_gate"],
+      "known_issues_in_paper": ["The theorem statement does not define the claimed separable upper bound. Appendix A.8 defines U_alpha, but its v term depends on the preceding-layer gates, so the layerwise objectives are coupled. For x=(1,1), W^(1)=[[1,4/3],[1,0]], W^(2)=I, density one at each layer, and alpha=1, WINA gives U_1=50/9 while the admissible gates g^(1)=(0,1), g^(2)=(1,0) give U_1=4.", "The two-layer proof writes ||A(M^(1)-I)x||_2^2 as a sum of omitted squared column scores for A=W^(2)W^(1). This equality requires the relevant columns of A to be orthogonal; diagonality of W^(2)T W^(2) alone does not imply that property."],
+      "formalization_notes": "The exact error decomposition and Young upper bound can be formalized, but they do not imply the theorem's minimization conclusion. A sound theorem would need additional hypotheses that remove inter-layer coupling or a different, explicitly defined bound with a proved minimizer."
+    },
+    {
+      "id": "svd_column_orthogonalization",
+      "label": "Appendix A.2 / Eq. (5)",
+      "name": "Right-singular-vector transformation gives orthogonal columns",
+      "kind": "lemma",
+      "references": {
+        "human": {
+          "statement": "Appendix A.2 'Orthogonal Tensor Transformation', Eq. (5)",
+          "proof": "Appendix A.2 overview paragraph",
+          "pdf_page_statement": 16,
+          "pdf_page_proof": 16,
+          "equations": ["(5)"]
+        },
+        "machine": {
+          "source_files": ["tex_arxiv/appendix.tex"],
+          "statement_lines": "appendix.tex L9-22"
+        }
+      },
+      "background_notation": {
+        "W = U Sigma V^T": "a singular value decomposition of W",
+        "W_hat": "the transformed matrix W V"
+      },
+      "hypotheses": ["W = U Sigma V^T is an SVD.", "U and V are orthogonal matrices.", "Sigma is diagonal with compatible dimensions."],
+      "statement_informal": "Multiplying a matrix by its right-singular-vector matrix produces a matrix whose Gram matrix is diagonal.",
+      "statement_formal": "If W = U Sigma V^T and W_hat = W V, then W_hat = U Sigma and W_hat^T W_hat = Sigma^T Sigma (written Sigma^2 in Eq. (5)); hence the columns of W_hat are mutually orthogonal.",
+      "proof_as_in_paper": "Substitute W = U Sigma V^T and V^T V = I into W_hat = W V to obtain W_hat = U Sigma. Then W_hat^T W_hat = Sigma^T U^T U Sigma = Sigma^T Sigma, which is diagonal.",
+      "proof_technique": "SVD substitution and orthogonal-matrix cancellation.",
+      "proof_completeness": "self-contained for the matrix Gram identity; full transformer-level computational invariance is attributed to external work and Algorithm 1",
+      "external_dependencies": ["The model-level computational-invariance transformation is attributed to SliceGPT (Ashkboos et al., 2024); Eq. (5) itself needs only standard SVD identities."],
+      "depends_on": [],
+      "known_issues_in_paper": ["For rectangular matrices, the diagonal Gram factor is Sigma^T Sigma; the notation Sigma^2 in Eq. (5) is dimensionally literal only under the paper's square/compatible-diagonal convention."],
+      "formalization_notes": "Formalize the Gram identity as a notation bridge from the paper's SVD symbols to Mathlib's matrix multiplication and transpose operations. Keep the broader model-invariance algorithm separate unless its companion transformations are fully specified."
+    }
+  ]
+}
