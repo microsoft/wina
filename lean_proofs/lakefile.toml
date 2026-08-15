@@ -1,0 +1,27 @@
+name = "wina_proofs"
+version = "0.1.0"
+keywords = ["math", "linear-algebra", "activation-sparsity"]
+defaultTargets = ["WINA"]
+
+[leanOptions]
+pp.unicode.fun = true
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.31.0"
+
+[[lean_lib]]
+name = "WINA"
+globs = [
+  "WINA",
+  "Basic",
+  "TopK",
+  "SingleLayer",
+  "SVDGram",
+  "DeepUpperBound",
+  "Examples",
+]
