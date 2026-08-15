@@ -33,8 +33,13 @@ import WINA
 #print axioms WINA.separableUpperBound_minimal
 #print axioms WINA.IsAdmissibleGateFamily
 #print axioms WINA.deep_upper_bound_optimality
+#print axioms WINA.winaSeparableUpperBound
+#print axioms WINA.IsLayerwiseWINATopK
+#print axioms WINA.deep_wina_upper_bound_optimality
+#print axioms WINA.deep_wina_upper_bound_optimality_of_literal_score
 #print axioms WINA.twoLayer_repair_nonvacuous
 #print axioms WINA.identity_twoLayerYoungBound_minimal
+#print axioms WINA.deep_wina_optimality_nonvacuous_singleLayer
 #print axioms WINA.svd_right_transform_eq
 #print axioms WINA.svd_transformed_gram
 #print axioms WINA.isDiag_transpose_mul_self

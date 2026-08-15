@@ -272,6 +272,64 @@ theorem deep_upper_bound_optimality
   intro other hother
   exact separableUpperBound_minimal coeff score k wina other hcoeff hwina hother
 
+variable {Out : Layer → Type*} [∀ l, Fintype (Out l)]
+
+/-- WINA's own gate rule from Eq. (4), applied at every layer to that layer's effective
+matrix `A l` and its incoming activation `act l`. -/
+def IsLayerwiseWINATopK (A : ∀ l, Matrix (Out l) (Coord l) ℝ) (act : ∀ l, Coord l → ℝ)
+    (k : Layer → ℕ) (gates : GateFamily Coord) : Prop :=
+  ∀ l, IsWINATopK (A l) (act l) (k l) (gates l)
+
+/-- The separable bound written in the paper's own scores: each omitted coordinate of layer
+`l` contributes $x_i^2\|A_{:,i}\|_2^2$, which is exactly the quantity Eq. (4) ranks. -/
+def winaSeparableUpperBound (coeff : Layer → ℝ) (A : ∀ l, Matrix (Out l) (Coord l) ℝ)
+    (act : ∀ l, Coord l → ℝ) (gates : GateFamily Coord) : ℝ :=
+  separableUpperBound coeff (fun l => winaScoreSq (A l) (act l)) gates
+
+omit [DecidableEq Layer] in
+/-- Theorem 3.2 in the paper's own objects. If the deviation is bounded on the admissible
+fixed-density domain by the separable bound built from the column-norm-weighted scores, then
+the gates chosen by Eq. (4) at each layer -- the $k_l$ largest $|x_i|\,\|A_{:,i}\|_2$ -- are in
+the argmin of that bound. This is the theorem's own sentence "minimizing $U$ reduces to
+selecting, at each layer, the $k$ largest coordinates weighted by squared column norms":
+`separableUpperBound_minimal` supplies the exchange argument, and this statement is what ties
+it to WINA's gate rule rather than to an unspecified score. -/
+theorem deep_wina_upper_bound_optimality
+    (error : GateFamily Coord → ℝ) (coeff : Layer → ℝ)
+    (A : ∀ l, Matrix (Out l) (Coord l) ℝ) (act : ∀ l, Coord l → ℝ)
+    (k : Layer → ℕ) (wina : GateFamily Coord) (hcoeff : ∀ l, 0 ≤ coeff l)
+    (hwina : IsLayerwiseWINATopK A act k wina)
+    (hupper : ∀ gates, IsAdmissibleGateFamily k gates →
+      error gates ≤ winaSeparableUpperBound coeff A act gates) :
+    (∀ gates, IsAdmissibleGateFamily k gates →
+      error gates ≤ winaSeparableUpperBound coeff A act gates) ∧
+      ∀ other, IsAdmissibleGateFamily k other →
+        winaSeparableUpperBound coeff A act wina ≤
+          winaSeparableUpperBound coeff A act other := by
+  refine ⟨hupper, ?_⟩
+  intro other hother
+  exact separableUpperBound_minimal coeff (fun l => winaScoreSq (A l) (act l)) k wina other
+    hcoeff (fun l => hwina l) hother
+
+omit [DecidableEq Layer] in
+/-- The same conclusion from the literal Eq. (4) score $|x_i|\,\|A_{:,i}\|_2$, without passing
+through its square. -/
+theorem deep_wina_upper_bound_optimality_of_literal_score
+    (error : GateFamily Coord → ℝ) (coeff : Layer → ℝ)
+    (A : ∀ l, Matrix (Out l) (Coord l) ℝ) (act : ∀ l, Coord l → ℝ)
+    (k : Layer → ℕ) (wina : GateFamily Coord) (hcoeff : ∀ l, 0 ≤ coeff l)
+    (hwina : ∀ l, IsTopK (winaScore (A l) (act l)) (k l) (wina l))
+    (hupper : ∀ gates, IsAdmissibleGateFamily k gates →
+      error gates ≤ winaSeparableUpperBound coeff A act gates) :
+    (∀ gates, IsAdmissibleGateFamily k gates →
+      error gates ≤ winaSeparableUpperBound coeff A act gates) ∧
+      ∀ other, IsAdmissibleGateFamily k other →
+        winaSeparableUpperBound coeff A act wina ≤
+          winaSeparableUpperBound coeff A act other :=
+  deep_wina_upper_bound_optimality error coeff A act k wina hcoeff
+    (fun l => (isTopK_winaScoreSq_iff_winaScore (A l) (act l) (k l) (wina l)).mpr (hwina l))
+    hupper
+
 end Separable
 
 end WINA

@@ -259,11 +259,16 @@
           "WINA.separableUpperBound_minimal",
           "WINA.IsAdmissibleGateFamily",
           "WINA.deep_upper_bound_optimality",
+          "WINA.winaSeparableUpperBound",
+          "WINA.IsLayerwiseWINATopK",
+          "WINA.deep_wina_upper_bound_optimality",
+          "WINA.deep_wina_upper_bound_optimality_of_literal_score",
           "WINA.twoLayer_repair_nonvacuous",
-          "WINA.identity_twoLayerYoungBound_minimal"
+          "WINA.identity_twoLayerYoungBound_minimal",
+          "WINA.deep_wina_optimality_nonvacuous_singleLayer"
         ],
         "added_hypotheses": ["Every layer gate is restricted to its fixed target cardinality, as intended by the paper's top-k rule but omitted from the displayed joint argmin.", "The paper-facing joint-minimizer theorem assumes that the upper bound has a gate-independent separable omitted-score representation with nonnegative layer coefficients; Appendix A.8 does not derive this bridge from the printed diagonal-Gram hypotheses.", "The concrete two-layer repair assumes diagonal Gram for the effective product W^(2)W^(1), that the first WINA gate is top-k for its effective scores, and that the WINA second gate makes the newest residual vanish."],
-        "route_note": "Lean mechanizes the paper's exact two-layer and N+1 decompositions, proves the scaled Young inequality rather than taking it as a premise, derives each valid omitted-score identity under its exact Gram condition, and proves the joint top-k conclusion conditionally from the explicit separability bridge. A separately named two-layer theorem gives a sufficient repair for the concrete Young objective, and an exact two-coordinate identity-network witness proves that its hypotheses are jointly satisfiable."
+        "route_note": "Lean mechanizes the paper's exact two-layer and N+1 decompositions, proves the scaled Young inequality rather than taking it as a premise, derives each valid omitted-score identity under its exact Gram condition, and proves the joint top-k conclusion conditionally from the explicit separability bridge. The joint conclusion is stated twice: once for an abstract score family, and once in the paper's own objects, where the bound is built from the column-norm-weighted scores x_i^2 ||A_{:,i}||_2^2 and the gates are exactly those of Eq. (4), including the literal |x_i| ||A_{:,i}||_2 form. A separately named two-layer theorem gives a sufficient repair for the concrete Young objective, an exact two-coordinate identity-network witness proves that its hypotheses are jointly satisfiable, and a one-layer instance discharges the bound hypothesis with equality from the Appendix A.7 identity."
       }
     },
     {
