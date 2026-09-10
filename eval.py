@@ -9,10 +9,12 @@ def eval(args):
     args.curr_mode = 'lm_eval'
     import lm_eval_harness
     info = lm_eval_harness.proceed(args)
-    result = {'actual_sparsity': info['actual_sparsity']}
-    #result = {}
-    if info is not None:
-        for task in args.eval_tasks:
+    if info is None:
+        raise RuntimeError("The evaluation harness returned no results")
+    result = {'actual_sparsity': info.get('actual_sparsity')}
+    for task in args.eval_tasks:
+            if task not in info.get('results', {}):
+                continue
             if 'acc_norm,none' in info['results'][task]:
                 result[task] = "%.4f" % (info['results'][task]['acc_norm,none'])
             elif 'exact_match,flexible-extract' in info['results'][task]:
@@ -29,7 +31,7 @@ if __name__ == "__main__":
     parser.add_argument('--save_path', type=str, required=True, help='Path to save the results')
     parser.add_argument('--sparsity', type=float, required=True, help="Sparsity of the model")
     parser.add_argument('--sparse_mode', type=str, required=True, help='Sparse approach, can be wina or teal')
-    parser.add_argument('--eval_tasks', type=list, required=False, default=['piqa','arc_challenge','winogrande','hellaswag','mmlu','gsm8k'])
+    parser.add_argument('--eval_tasks', type=lambda value: [item.strip() for item in value.split(',') if item.strip()], required=False, default=['piqa','arc_challenge','winogrande','hellaswag','mmlu','gsm8k'])
     parser.add_argument('--greedy', action="store_true", default=False, help='Flags for greedy')
     parser.add_argument('--mask_by', type=str, default='topk', help="Element selection strategy, can be 'topk' or 'threshold'")
     parser.add_argument('--transform', action='store_true', default=False, help='Flag for tensor transformation')

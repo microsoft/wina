@@ -34,6 +34,8 @@ class SparsifyFn(nn.Module):
         self.zero_count, self.numel = 0, 0
 
     def set_threshold(self, sparsity):
+        if not 0.0 <= sparsity <= 1.0:
+            raise ValueError(f"sparsity must be in [0, 1], got {sparsity}")
         if self.mask_by == 'threshold':
             self.threshold = self.distr.icdf(sparsity).item() if sparsity != 0.0 else 0.0
         #self.threshold = self.distr.icdf(0.5 + sparsity/2).item() if sparsity != 0.0 else 0.0
@@ -47,7 +49,7 @@ class SparsifyFn(nn.Module):
         #x = x.to(torch.float16)
         if self.mask_by == 'threshold':
             #return self.apply(x)
-            half_seq_len = int(0.99 * x.size(1))
+            half_seq_len = max(1, int(0.99 * x.size(1)))
             last_context = x[:, -half_seq_len:, :]
             last_mask = self.apply(last_context)
 
@@ -61,9 +63,9 @@ class SparsifyFn(nn.Module):
             return mask
         
         elif self.mask_by == 'topk':
-            half_seq_len = int(0.99 * x.size(1))
+            half_seq_len = max(1, int(0.99 * x.size(1)))
             last_x = x[:, -half_seq_len:, :]
-            k = int(last_x.size(-1) * (1-self.sparsity_level))
+            k = min(last_x.size(-1), max(1, int(last_x.size(-1) * (1-self.sparsity_level))))
             vals, topk_indices = last_x.abs().topk(k)
             last_mask = torch.zeros_like(last_x).scatter(-1, topk_indices, 1)
             mask = torch.cat((torch.ones_like(x[:, :-half_seq_len, :]), last_mask), dim=1)
@@ -96,7 +98,7 @@ class Distribution:
         self.file_path = file_path
         self.hidden_type = hidden_type # h1 or h2 if sparse_mode == teal; k/q/v/o/gate/up/down if sparse_model == wina
         
-        histogram = torch.load(f"{self.file_path}/histograms.pt")
+        histogram = torch.load(f"{self.file_path}/histograms.pt", map_location="cpu", weights_only=True)
 
         self.bin_centers, self.counts = histogram[f"{self.hidden_type}_centers"].cpu(), histogram[self.hidden_type].cpu()
 
@@ -164,7 +166,7 @@ class ActivationModule:
         torch.save(self.activations, f"{self.file_path}/activations.pt")
 
     def load_activations(self):
-        self.activations = torch.load(f"{self.file_path}/activations.pt")
+        self.activations = torch.load(f"{self.file_path}/activations.pt", map_location="cpu", weights_only=True)
 
     def find_threshold(self, q):
         threshold_dict = {}
@@ -202,7 +204,7 @@ class ActivationModule:
         for key, acts in self.activations.items():
             torch.cuda.empty_cache()
             
-            acts = acts.flatten().detach().to('cuda')
+            acts = acts.flatten().detach()
             
             if f"{key}_centers" not in self.histograms:
                 bin_centers, counts = torch.unique(acts, sorted=True, return_inverse=False, return_counts=True, dim=None)

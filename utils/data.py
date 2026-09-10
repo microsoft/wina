@@ -29,6 +29,8 @@ def get_dataset(dataset_name, subset, split, size=None, start=0, seed=42):
         dataset = load_dataset("Salesforce/wikitext", "wikitext-2-raw-v1")[split]
     elif dataset_name == 'commonsense':
         dataset = get_commonsense(split)
+    else:
+        raise ValueError(f"Unsupported dataset: {dataset_name!r}")
     dataset = dataset.shuffle(seed)
     if size is not None:
         dataset = dataset.skip(start).take(size)
@@ -45,7 +47,7 @@ def get_dataloader(dataset, tokenizer, batch_size, num_workers=4, max_length=128
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
-        num_workers=0,
+        num_workers=num_workers,
         collate_fn=default_data_collator,
     )
     return dataloader

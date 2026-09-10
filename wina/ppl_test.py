@@ -48,20 +48,21 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int, default=42, help='Seed for dataset shuffle')
     
     args = parser.parse_args()
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     
     print("="*40)
     print("Start evaluating PPL")
     print('sparsity:', args.sparsity)
 
     tokenizer = get_tokenizer(args.model_name)
-    model = get_sparse_model(args.model_name, device="auto", 
+    model = get_sparse_model(args.model_name, device=device,
                             histogram_path=os.path.join(args.output_path, "histograms"), 
                             sparse_mode=args.sparse_mode, mask_by=args.mask_by,
                             transform=args.transform
                             )
     
-    model.cuda()
-    model.bfloat16()
+    if device == "cuda":
+        model.bfloat16()
 
     print("sample size:",args.sample_size)
     dataset = get_dataset(
@@ -80,7 +81,7 @@ if __name__ == "__main__":
         print("Evaluating uniform PPL")
         model.set_uniform_sparsity(args.sparsity)
 
-    sparse_ppl = eval_ppl(model, tokenizer, device="cuda", dataset=dataset, debug=False)
+    sparse_ppl = eval_ppl(model, tokenizer, device=device, dataset=dataset, debug=False)
     print(f"PPL: {sparse_ppl}")
     
     # record actual sparsity
