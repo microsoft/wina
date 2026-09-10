@@ -11,6 +11,8 @@ from tqdm import tqdm
 import os
 
 def eval_ppl(model, tokenizer, device,dataset=None, debug=False, context_size=2048, window_size=512):
+    if dataset is None:
+        raise ValueError("dataset must not be None")
     text = ""
     for sample in dataset:
         text += sample["text"] + "\n\n"
@@ -23,8 +25,8 @@ def eval_ppl(model, tokenizer, device,dataset=None, debug=False, context_size=20
     max_length = context_size + window_size
     stride = window_size
     seq_len = encodings.input_ids.size(1)
-    # make seq_len a multiple of stride
-    seq_len = seq_len - (seq_len % stride)
+    if seq_len == 0:
+        raise ValueError("dataset produced no tokens")
 
     if debug:
         print(f"seq_len: {seq_len}")
@@ -68,6 +70,8 @@ def eval_ppl(model, tokenizer, device,dataset=None, debug=False, context_size=20
         if end_loc >= seq_len:
             break
 
+    if not nlls:
+        raise ValueError("dataset produced no evaluable windows")
     ppl = torch.exp(torch.stack(nlls).double().mean())
 
     return ppl.item()
