@@ -52,6 +52,10 @@ def _monkeypatch_layer(layer, path, grabbing_mode=False, sparse_mode=None, mask_
 class SparseModelMixin:
     @classmethod
     def from_pretrained(cls, pretrained_model_name_or_path, sparse_mode, mask_by, strategy_path=None, *model_args, **kwargs):
+        if sparse_mode not in {"wina", "teal"}:
+            raise ValueError(f"Unsupported sparse_mode: {sparse_mode!r}")
+        if mask_by not in {"threshold", "topk"}:
+            raise ValueError(f"Unsupported mask_by: {mask_by!r}")
         # Extract custom arguments
         histogram_path = kwargs.pop('histogram_path', None)
         grab_acts = kwargs.pop('grab_acts', False)
@@ -69,7 +73,9 @@ class SparseModelMixin:
         # Load the config
         config = kwargs.get('config', None)
         if config is None:
-            config = cls.config_class.from_pretrained(pretrained_model_name_or_path, sparse_mode, **kwargs)
+            # PretrainedConfig.from_pretrained accepts the model path and
+            # keyword overrides only; sparse_mode is a project-specific arg.
+            config = cls.config_class.from_pretrained(pretrained_model_name_or_path, **kwargs)
         else:
             kwargs.pop('config', None)
 

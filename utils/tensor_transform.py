@@ -131,12 +131,14 @@ def cleanup_memory() -> None:
         )
 T = TypeVar('T')
 
-def get_random_q(dim):
-    A = torch.randn(dim, dim, dtype=torch.float64).cuda()
+def get_random_q(dim, device=None):
+    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+    A = torch.randn(dim, dim, dtype=torch.float64, device=device)
     Q, _ = torch.linalg.qr(A)
     return Q
 
-def rotate_embeddings(model, Q: torch.Tensor, device='cuda') -> None:
+def rotate_embeddings(model, Q: torch.Tensor, device=None) -> None:
+    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     # Rotate the embeddings.
     for W in get_embeddings(model):
         dtype = W.weight.data.dtype
@@ -146,21 +148,24 @@ def rotate_embeddings(model, Q: torch.Tensor, device='cuda') -> None:
     # Run GC and cleanup GPU memory
     cleanup_memory()
 
-def rotate_head(model, Q: torch.Tensor, device='cuda') -> None:
+def rotate_head(model, Q: torch.Tensor, device=None) -> None:
+    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     # Rotate the head.
     W = get_lm_head(model)
     dtype = W.weight.data.dtype
     W_ = W.weight.data.to(device=device, dtype=torch.float64)
     W.weight.data = torch.matmul(W_, Q).to(device="cpu", dtype=dtype)
 
-def rotate_attention_inputs(layer, Q: torch.Tensor, device='cuda') -> None:
+def rotate_attention_inputs(layer, Q: torch.Tensor, device=None) -> None:
+    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     # Rotate the WQ, WK and WV matrices of the self-attention layer.
     for W in get_attention_inputs(layer):
         dtype = W.weight.dtype
         W_ = W.weight.to(device=device, dtype=torch.float64)
         W.weight.data = torch.matmul(W_, Q).to(device="cpu", dtype=dtype)
 
-def rotate_attention_output(layer, Q: torch.Tensor, device='cuda') -> None:
+def rotate_attention_output(layer, Q: torch.Tensor, device=None) -> None:
+    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     # Rotate output matrix of the self-attention layer.
     W = get_attention_output(layer)
 
@@ -171,14 +176,16 @@ def rotate_attention_output(layer, Q: torch.Tensor, device='cuda') -> None:
         b = W.bias.data.to(device=device, dtype=torch.float64)
         W.bias.data = torch.matmul(Q.T, b).to(device="cpu", dtype=dtype)
 
-def rotate_mlp_input(layer, Q: torch.Tensor, device='cuda') -> None:
+def rotate_mlp_input(layer, Q: torch.Tensor, device=None) -> None:
+    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     # Rotate the MLP input weights.
     for W in get_mlp_inputs(layer):
         dtype = W.weight.dtype
         W_ = W.weight.data.to(device=device, dtype=torch.float64)
         W.weight.data = torch.matmul(W_, Q).to(device="cpu", dtype=dtype)
 
-def rotate_mlp_output(layer, Q: torch.Tensor, device='cuda') -> None:
+def rotate_mlp_output(layer, Q: torch.Tensor, device=None) -> None:
+    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     # Rotate the MLP output weights and bias.
     W = get_mlp_output(layer)
     dtype = W.weight.data.dtype
@@ -188,22 +195,24 @@ def rotate_mlp_output(layer, Q: torch.Tensor, device='cuda') -> None:
         b = W.bias.data.to(device=device, dtype=torch.float64)
         W.bias.data = torch.matmul(Q.T, b).to(device="cpu", dtype=dtype)
 
-def svd(W):
-    U, S, Vh = torch.linalg.svd(W.to(torch.float64).cuda(), full_matrices=True)
+def svd(W, device=None):
+    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+    U, S, Vh = torch.linalg.svd(W.to(device=device, dtype=torch.float64), full_matrices=True)
     Q = Vh.T  
     return Q
 
-def rotate_sequential(model, device='cuda', final_orientation=None):
+def rotate_sequential(model, device=None, final_orientation=None):
+    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     model.eval()
     dtype = next(iter(model.parameters())).dtype
-    
+
     # rotate embeddings
     #Q = get_random_q(model.model.embed_tokens.weight.shape[-1]).to(device)
     if 'phi' in model.__class__.__name__.lower():
-        Q = svd(model.model.layers[0].self_attn.qkv_proj.weight)
+        Q = svd(model.model.layers[0].self_attn.qkv_proj.weight, device)
     else:
-        Q = svd(model.model.layers[0].self_attn.k_proj.weight)
-    rotate_embeddings(model, Q)
+        Q = svd(model.model.layers[0].self_attn.k_proj.weight, device)
+    rotate_embeddings(model, Q, device)
     
     print("Rotating layers")
     layers = model.model.layers
@@ -211,22 +220,22 @@ def rotate_sequential(model, device='cuda', final_orientation=None):
         layer.attn_shortcut_Q = nn.Parameter(Q.T.clone())
 
         # rotate the attention inputs to match previous layer
-        rotate_attention_inputs(layer, Q)
+        rotate_attention_inputs(layer, Q, device)
 
         # compute the Q for attention output
         #Q = get_random_q(model.model.embed_tokens.weight.shape[-1]).to(device)
         if 'phi' in model.__class__.__name__.lower():
-            Q = svd(layer.mlp.gate_up_proj.weight)
+            Q = svd(layer.mlp.gate_up_proj.weight, device)
         else:
-            Q = svd(layer.mlp.gate_proj.weight)
+            Q = svd(layer.mlp.gate_proj.weight, device)
         layer.attn_shortcut_Q = nn.Parameter(
             torch.matmul(layer.attn_shortcut_Q, Q).to(dtype=dtype)
         )
         layer.mlp_shortcut_Q = nn.Parameter(Q.T.clone())
         
         # rotate the attention output and mlp input
-        rotate_attention_output(layer, Q)
-        rotate_mlp_input(layer, Q)
+        rotate_attention_output(layer, Q, device)
+        rotate_mlp_input(layer, Q, device)
 
         # Run GC and cleanup GPU memory
         cleanup_memory()
@@ -236,15 +245,15 @@ def rotate_sequential(model, device='cuda', final_orientation=None):
         if idx < len(model.model.layers)-1:
             next_layer = model.model.layers[idx+1]
             if 'phi' in model.__class__.__name__.lower():
-                Q = svd(next_layer.self_attn.qkv_proj.weight)
+                Q = svd(next_layer.self_attn.qkv_proj.weight, device)
             else:
-                Q = svd(next_layer.self_attn.k_proj.weight)
+                Q = svd(next_layer.self_attn.k_proj.weight, device)
         layer.mlp_shortcut_Q = nn.Parameter(
             torch.matmul(layer.mlp_shortcut_Q, Q).to(dtype=dtype)
             )
 
         # rotate mlp output
-        rotate_mlp_output(layer, Q)
+        rotate_mlp_output(layer, Q, device)
 
         layer.to('cpu')
 
@@ -252,15 +261,15 @@ def rotate_sequential(model, device='cuda', final_orientation=None):
         cleanup_memory()
 
     # rotate and slice head
-    rotate_head(model, Q)
+    rotate_head(model, Q, device)
     
     logging.info("Rotate and slice layers done")
 
-def tensor_transform(model):
+def tensor_transform(model, device=None):
     # replace LayerNorm with RMSNorm by fusing LayerNorm and LinearLayer
     fuse_layernorm(model)
     # rotate tensor
-    rotate_sequential(model)
+    rotate_sequential(model, device=device)
     # reset column-wise norms
     for layer in model.model.layers:
         if 'phi' in layer.__class__.__name__.lower():
@@ -269,4 +278,3 @@ def tensor_transform(model):
         else:
             layer.self_attn.k_norm_by_column = layer.self_attn.k_proj.weight.norm(dim=0)
             layer.mlp.gate_norm_by_column = layer.mlp.gate_proj.weight.norm(dim=0)
-    

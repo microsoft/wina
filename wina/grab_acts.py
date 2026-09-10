@@ -40,6 +40,7 @@ parser.add_argument('--layer_wise', action='store_true', default=False, help="Fl
 parser.add_argument('--sample_size', type=int, default=20, help="Size of samples for constructing histogram")
 parser.add_argument('--dataset_name', type=str, default='alpaca', help="Dataset for constructing histogram, can be alpaca/wikitext/commonsense")
 args = parser.parse_args()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 print("="*40)
 print('Start threshold calculating')
@@ -96,7 +97,7 @@ threshold_path = os.path.join(args.output_path, "thresholds")
 #os.makedirs(threshold_path, exist_ok=True)
 
 for layer_idx in tqdm(range(len(model.model.layers))):
-    layer = model.model.layers[layer_idx].cuda()
+    layer = model.model.layers[layer_idx].to(device)
         
     # save hidden_states for greedyopt
     if not args.layer_wise:
@@ -105,7 +106,7 @@ for layer_idx in tqdm(range(len(model.model.layers))):
     # grab hidden states and construct histogram
     for sample_idx in range(len(hidden_states_all)):
         hidden_states, position_ids = hidden_states_all[sample_idx], position_ids_all[sample_idx]
-        output = layer(hidden_states.to('cuda'), attention_mask, position_ids.to('cuda'), past_key_value, output_attentions, use_cache, cache_position)[0].cpu()
+        output = layer(hidden_states.to(device), attention_mask, position_ids.to(device), past_key_value, output_attentions, use_cache, cache_position)[0].cpu()
         if not args.layer_wise:
             # if not layer-wise: update hidden_states 
             hidden_states_all[sample_idx] = output
@@ -132,7 +133,7 @@ for layer_idx in tqdm(range(len(model.model.layers))):
             layer.mlp.sparse_fns[proj].set_threshold(args.sparsity)
         for sample_idx in range(len(hidden_states_all)):
             hidden_states, position_ids = hidden_states_all[sample_idx], position_ids_all[sample_idx]
-            hidden_states = layer(hidden_states.cuda(), attention_mask, position_ids.cuda(), past_key_value, output_attentions, use_cache, cache_position)[0].cpu()
+            hidden_states = layer(hidden_states.to(device), attention_mask, position_ids.to(device), past_key_value, output_attentions, use_cache, cache_position)[0].cpu()
             hidden_states_all[sample_idx] = hidden_states    
 
     del layer.mlp.activation_module.activations
@@ -141,7 +142,8 @@ for layer_idx in tqdm(range(len(model.model.layers))):
     model.model.layers[layer_idx] = None
 
     gc.collect()
-    torch.cuda.empty_cache()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
     
 print("Finish threshold calculating")
 print('='*40)

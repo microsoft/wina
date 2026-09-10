@@ -84,6 +84,8 @@ def set_layer_sparsities(layer, sparsities):
 
 def f(sparsities, weights):
     total_weight = sum(weights.values())
+    if total_weight <= 0:
+        raise ValueError("weights must have a positive total")
     weighted_sparsity_sum = 0
     for projection_type, value in sparsities.items():
         if projection_type in weights:
@@ -118,14 +120,22 @@ def calculate_baseline_error(layer, input_acts, target_acts, baseline_sparsities
     return calculate_activation_error(target_acts, new_activations, last_fraction)
 
 def process_layer(layer, model_type, layer_idx, target_sparsity, base_step_size, last_fraction, output_path, sample_size):
+    if model_type not in weight_dict:
+        raise ValueError(f"Unsupported model_type: {model_type!r}")
+    if not 0 <= target_sparsity <= 1:
+        raise ValueError("target_sparsity must be in [0, 1]")
+    if base_step_size <= 0:
+        raise ValueError("base_step_size must be positive")
+    if not 0 < last_fraction <= 1:
+        raise ValueError("last_fraction must be in (0, 1]")
     weights = weight_dict[model_type]
 
     histogram_path = os.path.join(output_path, 'histograms')
     activations_path = os.path.join(output_path, 'activations', f'act_{layer_idx}.pt')
     output_path = os.path.join(output_path, 'lookup', f'layer-{layer_idx}', 'results.csv')
 
-    device = "cuda"
-    input_acts = torch.load(activations_path, map_location='cpu')#.to(device)
+    device = next(layer.parameters()).device
+    input_acts = torch.load(activations_path, map_location='cpu', weights_only=True)
     input_acts = input_acts[:sample_size]
     layer = layer.to(device)
 
@@ -149,7 +159,7 @@ def process_layer(layer, model_type, layer_idx, target_sparsity, base_step_size,
     with open(output_path, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(['Effective Sparsity'] + ['Activation Error', 'Baseline Error'] + [f"{proj}" for proj in projs])
-        
+
         while f(sparsities, weights) < target_sparsity:
             best_error = float('inf')
             best_proj = None
@@ -173,7 +183,9 @@ def process_layer(layer, model_type, layer_idx, target_sparsity, base_step_size,
                     best_error = error
                     best_proj = proj
             
-            sparsities[best_proj] += step_sizes[best_proj]
+            if best_proj is None:
+                raise RuntimeError("Unable to increase sparsity; all projections reached their limits")
+            sparsities[best_proj] = min(1.0, sparsities[best_proj] + step_sizes[best_proj])
             set_layer_sparsities(layer, sparsities)
             
             effective_sparsity = f(sparsities, weights)
